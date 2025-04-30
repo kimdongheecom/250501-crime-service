@@ -1,0 +1,39 @@
+services:
+  crime-service:
+    build: ./crime-service
+    ports:
+      - "9002:9002"
+    volumes:
+      - ./crime-service:/app
+    environment:
+      - PYTHONPATH=/app
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./gateway:/app
+    environment:
+      - PYTHONPATH=/app
+      - CRIME_SERVICE_URL=http://crime-service:9002
+      - TITANIC_SERVICE_URL=http://titanic-service:9001
+      - MATZIP_SERVICE_URL=http://matzip-service:9003
+
+  matzip-service:
+    build: ./matzip-service
+    ports:
+      - "9003:9003"
+    volumes:
+      - ./matzip-service:/app
+    environment:
+      - PYTHONPATH=/app
+
+  titanic-service:
+    build: ./titanic-service
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./titanic-service:/app
+    environment:
+      - PYTHONPATH=/app 
