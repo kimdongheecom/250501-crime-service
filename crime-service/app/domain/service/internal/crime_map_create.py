@@ -187,6 +187,61 @@ class CrimeMapCreator:
             logger.error(traceback.format_exc())
             # 마커 추가 실패해도 지도 생성은 계속 진행
 
+        # 3. 검거율 CircleMarker 추가
+        try:
+            logger.info("검거율 CircleMarker 추가 중...")
+            
+            # 검거율 정보를 담을 FeatureGroup 생성
+            arrest_group = folium.FeatureGroup(name='자치구별 검거율', show=True)
+            
+            # 검거 컬럼 존재 여부 확인
+            if '검거' not in police_norm.columns:
+                logger.warning("'검거' 컬럼이 데이터에 없습니다. CircleMarker 추가를 건너뜁니다.")
+            else:
+                # 각 자치구별로 CircleMarker 추가
+                for feature in state_geo['features']:
+                    gu_name = feature['id']
+                    gu_data = police_norm[police_norm['자치구'] == gu_name]
+                    
+                    if not gu_data.empty and '검거' in gu_data.columns:
+                        arrest_value = float(gu_data['검거'].iloc[0])
+                        
+                        # 폴리곤의 중심점 계산 (대략적인 방법)
+                        coords = feature['geometry']['coordinates'][0]
+                        if coords and len(coords) > 0:
+                            # 중심점 계산 (다각형의 꼭지점 평균)
+                            if isinstance(coords[0][0], list):  # MultiPolygon인 경우
+                                coords = coords[0]
+                            
+                            lngs = [c[0] for c in coords]
+                            lats = [c[1] for c in coords]
+                            center_lng = sum(lngs) / len(lngs)
+                            center_lat = sum(lats) / len(lats)
+                            
+                            # 검거율에 비례하는 반지름 설정 (스케일링)
+                            radius = 100 + (arrest_value * 200)  # 값 조정 필요할 수 있음
+                            
+                            # CircleMarker 추가
+                            folium.CircleMarker(
+                                location=[center_lat, center_lng],
+                                radius=min(20, max(5, arrest_value * 10)),  # 최소 5, 최대 20
+                                color='blue',
+                                fill=True,
+                                fill_color='blue',
+                                fill_opacity=0.4,
+                                tooltip=f"{gu_name}: 검거율 지수 {arrest_value:.2f}",
+                                popup=f"<strong>{gu_name}</strong><br>검거율 지수: {arrest_value:.2f}"
+                            ).add_to(arrest_group)
+                
+                # 검거율 CircleMarker 그룹을 지도에 추가
+                arrest_group.add_to(folium_map)
+                logger.info("검거율 CircleMarker 추가 완료.")
+        
+        except Exception as e:
+            logger.error(f"검거율 CircleMarker 생성 중 예상치 못한 오류: {str(e)}")
+            logger.error(traceback.format_exc())
+            # 검거율 마커 추가 실패해도 지도 생성은 계속 진행
+
         # 레이어 컨트롤 추가 (Choropleth와 Marker 그룹 제어)
         folium.LayerControl().add_to(folium_map)
 
