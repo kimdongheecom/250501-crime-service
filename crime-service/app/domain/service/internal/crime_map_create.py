@@ -218,17 +218,27 @@ class CrimeMapCreator:
                             center_lng = sum(lngs) / len(lngs)
                             center_lat = sum(lats) / len(lats)
                             
-                            # 검거율에 비례하는 반지름 설정 (스케일링)
-                            radius = 100 + (arrest_value * 200)  # 값 조정 필요할 수 있음
+                            # 검거율 지수에 따라 원의 크기를 5등분으로 차등화
+                            if arrest_value < 1.0:
+                                radius = 8  # 가장 작은 원
+                            elif arrest_value < 2.0:
+                                radius = 15  # 작은 원
+                            elif arrest_value < 3.0:
+                                radius = 22  # 중간 원
+                            elif arrest_value < 4.0:
+                                radius = 30  # 큰 원
+                            else:  # 4.0 이상
+                                radius = 38  # 가장 큰 원
                             
                             # CircleMarker 추가
                             folium.CircleMarker(
                                 location=[center_lat, center_lng],
-                                radius=min(20, max(5, arrest_value * 10)),  # 최소 5, 최대 20
-                                color='blue',
+                                radius=radius,  # 검거율에 비례한 크기
+                                color='black',
+                                weight=1,
                                 fill=True,
                                 fill_color='blue',
-                                fill_opacity=0.4,
+                                fill_opacity=0.8,
                                 tooltip=f"{gu_name}: 검거율 지수 {arrest_value:.2f}",
                                 popup=f"<strong>{gu_name}</strong><br>검거율 지수: {arrest_value:.2f}"
                             ).add_to(arrest_group)
@@ -236,6 +246,47 @@ class CrimeMapCreator:
                 # 검거율 CircleMarker 그룹을 지도에 추가
                 arrest_group.add_to(folium_map)
                 logger.info("검거율 CircleMarker 추가 완료.")
+                
+                # 검거율 범례 추가
+                legend_html = '''
+                <div style="position: fixed; 
+                            bottom: 50px; left: 50px; width: 200px; height: 190px; 
+                            border:2px solid grey; z-index:9999; background-color:white;
+                            padding: 10px; font-size: 14px;">
+                    <div style="font-weight: bold; margin-bottom: 10px;">검거율 지수 범례</div>
+                    <div>
+                        <svg height="20" width="20">
+                            <circle cx="10" cy="10" r="8" stroke="black" stroke-width="1" fill="blue" />
+                        </svg>
+                        <span style="position: relative; bottom: 5px;"> 0 ~ 1</span>
+                    </div>
+                    <div style="margin-top: 5px;">
+                        <svg height="20" width="20">
+                            <circle cx="10" cy="10" r="15" stroke="black" stroke-width="1" fill="blue" />
+                        </svg>
+                        <span style="position: relative; bottom: 5px;"> 1 ~ 2</span>
+                    </div>
+                    <div style="margin-top: 5px;">
+                        <svg height="20" width="20">
+                            <circle cx="10" cy="10" r="20" stroke="black" stroke-width="1" fill="blue" />
+                        </svg>
+                        <span style="position: relative; bottom: 5px;"> 2 ~ 3</span>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <svg height="30" width="30">
+                            <circle cx="15" cy="15" r="28" stroke="black" stroke-width="1" fill="blue" />
+                        </svg>
+                        <span style="position: relative; bottom: 10px;"> 3 ~ 4</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <svg height="30" width="30">
+                            <circle cx="15" cy="15" r="35" stroke="black" stroke-width="1" fill="blue" />
+                        </svg>
+                        <span style="position: relative; bottom: 15px;"> 4 ~ 5</span>
+                    </div>
+                </div>
+                '''
+                folium_map.get_root().html.add_child(folium.Element(legend_html))
         
         except Exception as e:
             logger.error(f"검거율 CircleMarker 생성 중 예상치 못한 오류: {str(e)}")
