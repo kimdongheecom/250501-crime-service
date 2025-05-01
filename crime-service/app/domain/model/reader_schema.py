@@ -1,12 +1,13 @@
 from dataclasses import dataclass
 import json
-
+import os
+from app.domain.model.google_map_schema import ApiKeyManager
 import pandas as pd
 @dataclass
 class ReaderSchema:
     def __init__(self):
         
-        self._context = 'C://Users//bitcamp//Documents//kpmg-250424//kpmg2501//V2//ai-server//app//stored_data//crime'
+        self._context = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'stored_data')
         self._fname = ''
     @property
     def context(self) -> str:
@@ -21,8 +22,10 @@ class ReaderSchema:
     def fname(self,fname):
         self._fname = fname
     def new_file(self)->str:
-        return self._context + self._fname
+        print("😫😯😐😋new_file들어왔음")
+        return os.path.join(self._context, self._fname)
     def csv_to_dframe(self) -> object:
+        print("😫😯😐😋csv_to_dframe들어왔음")
         file = self.new_file()
         return pd.read_csv(file, thousands=',')
     def xls_to_dframe(self, header, usecols)-> object:
@@ -31,3 +34,5 @@ class ReaderSchema:
     def json_load(self):
         file = self.new_file()
         return json.load(open(file))
+    def gmaps(self):
+        return ApiKeyManager()

@@ -45,3 +45,28 @@ docker-compose build --no-cache esgservice      # esg 서비스 캐시 없이 �
 docker-compose build --no-cache stockservice    # stock 서비스 캐시 없이 재빌드
 
 psql -U postgres -d your_database_name
+
+(3단계) - 오류에 대한 캐쉬 아예 삭제
+docker-compose down  
+모든 관련 이미지를삭제:
+docker rmi $(docker images 'ai-server*' -q)  
+Docker 캐시 정리  
+docker system prune -a 
+다시 빌드 
+docker-compose build --no-cache  
+컴포즈업 
+docker-compose up
+
+
+(2단계 - 오류 수정하고나서 다시 재 빌드할 때)
+# 1. 컨테이너 중지
+docker-compose down
+
+# 2. crime-service만 재빌드
+docker-compose build --no-cache crime-service
+
+# 3. 서비스 재시작
+docker-compose up -d
+
+(1단계 - 코드 잠깐의 수정)
+docker compose restart

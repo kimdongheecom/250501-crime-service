@@ -1,16 +1,13 @@
-from fastapi import FastAPI, APIRouter, Request, HTTPException
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import Dict, Any, List
+from typing import Dict, Any
 from contextlib import asynccontextmanager
 import os
 import logging
 import json
 from dotenv import load_dotenv
-from pydantic import BaseModel
-
-# ✅ 서브 라우터 임포트
-from app.api.crime_router import router as crime_router
+from app.api.crime_router import router as crime_api_router
 
 # ✅ 로깅 설정
 logging.basicConfig(
@@ -46,7 +43,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ 라우터 등록
+# ✅ 서브 라우터 생성
+crime_router = APIRouter(prefix="/crime", tags=["Finance API"])
+
+# ✅ 서브 라우터와 엔드포인트를 연결함
+app.include_router(crime_api_router, prefix="/crime")
+
+
+# ✅ 서브 라우터 등록
 app.include_router(crime_router)
 
 # ✅ 서버 실행
