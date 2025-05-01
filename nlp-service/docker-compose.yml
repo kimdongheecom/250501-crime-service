@@ -1,0 +1,11 @@
+services:
+  nlp-service:
+    container_name: nlp-service
+    build: .
+    ports:
+      - "7000:7000"
+    volumes:
+      - .:/app
+    environment:
+      - ENVIRONMENT=development
+    restart: always
