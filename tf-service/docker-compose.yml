@@ -1,0 +1,11 @@
+services:
+  tf-service:
+    container_name: tf-service
+    build: .
+    ports:
+      - "7070:7070"
+    volumes:
+      - .:/app
+    environment:
+      - ENVIRONMENT=development
+    restart: always
